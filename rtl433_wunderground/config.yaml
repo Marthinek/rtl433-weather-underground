@@ -1,0 +1,67 @@
+name: RTL433 Weather Underground Uploader
+slug: rtl433_wunderground
+description: Forward weather observations from MQTT (for example rtl_433) to Weather Underground PWS
+version: "0.1.0"
+url: https://github.com/Marthinek/rtl433-weather-underground
+startup: application
+boot: auto
+init: false
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - armhf
+  - i386
+map:
+  - type: addon_config
+    read_only: false
+options:
+  station_id: ""
+  station_key: ""
+  mqtt_host: core-mosquitto
+  mqtt_port: 1883
+  mqtt_username: ""
+  mqtt_password: ""
+  mqtt_topic: "rtl_433/+/events"
+  mqtt_tls: false
+  upload_interval: 60
+  max_data_age: 300
+  temperature_field: "temperature_C"
+  temperature_unit: "C"
+  humidity_field: "humidity"
+  pressure_field: "pressure_hPa"
+  pressure_unit: "hPa"
+  wind_speed_field: "wind_avg_km_h"
+  wind_speed_unit: "km/h"
+  wind_gust_field: "wind_max_km_h"
+  wind_gust_unit: "km/h"
+  wind_direction_field: "wind_dir_deg"
+  rain_hour_field: ""
+  rain_hour_unit: "mm"
+  rain_day_field: ""
+  rain_day_unit: "mm"
+schema:
+  station_id: str
+  station_key: password
+  mqtt_host: str
+  mqtt_port: port
+  mqtt_username: str
+  mqtt_password: password
+  mqtt_topic: str
+  mqtt_tls: bool
+  upload_interval: int(30,3600)
+  max_data_age: int(30,86400)
+  temperature_field: str
+  temperature_unit: list(C|F)
+  humidity_field: str
+  pressure_field: str
+  pressure_unit: list(hPa|inHg|mmHg)
+  wind_speed_field: str
+  wind_speed_unit: list("m/s"|"km/h"|mph|knots)
+  wind_gust_field: str
+  wind_gust_unit: list("m/s"|"km/h"|mph|knots)
+  wind_direction_field: str
+  rain_hour_field: str
+  rain_hour_unit: list(mm|in)
+  rain_day_field: str
+  rain_day_unit: list(mm|in)
