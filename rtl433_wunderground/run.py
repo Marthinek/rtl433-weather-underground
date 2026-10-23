@@ -64,6 +64,9 @@ def to_inhg(value: float, unit: str) -> float:
     return value / 33.8638866667  # hPa/mbar
 
 def to_mph(value: float, unit: str) -> float:
+    # Home Assistant schema represents m/s and km/h options with embedded
+    # quote characters; normalize those before unit conversion.
+    unit = str(unit).strip().strip('"\'')
     factors = {"mph": 1.0, "m/s": 2.2369362921, "km/h": 0.6213711922, "knots": 1.150779448}
     return value * factors[unit]
 
