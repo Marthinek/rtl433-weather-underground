@@ -1,58 +1,140 @@
-# rtl433-weather-underground
+# RTL433 Weather Underground Uploader
 
-A Home Assistant OS add-on that forwards weather observations received over MQTT (for example, from `rtl_433`) to a Weather Underground Personal Weather Station (PWS).
+A Home Assistant OS add-on that forwards weather observations received over MQTT to a Weather Underground Personal Weather Station (PWS). It is designed for weather sensors decoded by [rtl_433](https://github.com/merbanan/rtl_433), including stations that publish JSON over MQTT.
 
-> **Early development / beta:** This project needs testing with real `rtl_433` MQTT messages and a Weather Underground PWS. Do not assume rain accumulation fields are interchangeable; configure mappings to match your sensors.
+The add-on subscribes to your configured MQTT topic, maps fields from the latest JSON message, converts supported units, and periodically uploads available values to Weather Underground.
 
 ## Features
 
-- Subscribe to an MQTT topic and parse JSON messages.
-- Configurable JSON field mapping for temperature, humidity, pressure, wind and rain.
-- Convert common metric units to the Weather Underground upload units.
-- Periodic uploads to Weather Underground.
-- Validate MQTT data age and values; avoid sending fields that are not available.
-- Keep station credentials in the add-on options, not in source code.
-- Logs with credentials redacted.
+- MQTT input, including the common `rtl_433/+/events` topic pattern.
+- Configurable JSON field mapping, including dotted paths for nested JSON.
+- Unit conversion for temperature, pressure, wind speed/gust, and rain.
+- Configurable upload interval and maximum accepted MQTT message age.
+- Skips fields that are missing or not numeric rather than sending invented values.
+- Logs upload status and submitted field names without printing station credentials.
 
-## Installation (manual beta testing)
+## Installation
+
+This project is distributed as a **Home Assistant add-on repository**. HACS is not required.
 
 1. In Home Assistant, open **Settings → Add-ons → Add-on store**.
-2. Open the menu and select **Repositories**.
-3. Add this repository URL: `https://github.com/Marthinek/rtl433-weather-underground`.
-4. Find **RTL433 Weather Underground Uploader**, install it and configure the add-on.
-5. Configure MQTT broker details, the topic that contains your station data, and the JSON field mapping.
-6. Start the add-on and inspect its logs before relying on uploads.
+2. Open the store menu and select **Repositories**.
+3. Add this repository:
+   `https://github.com/Marthinek/rtl433-weather-underground`
+4. Find **RTL433 Weather Underground Uploader** and install it.
+5. Open the add-on's **Configuration** page and fill in the settings described below.
+6. Start the add-on, then check the **Log** tab for MQTT connection and upload status.
 
-This repository is distributed as a **Home Assistant add-on repository**, not yet as a HACS integration. HACS and the add-on store are different distribution mechanisms. A native HACS integration may be added later if there is a good use case.
+To install a newer release, refresh the add-on store/repository and install the offered update when it becomes available.
 
-## MQTT input
+## Configuration
 
-The add-on expects JSON messages. A typical example might look like this, but the real `rtl_433` field names vary by station and decoder:
+Configure the add-on through the Home Assistant add-on configuration page.
+
+### Weather Underground
+
+- **Station ID** (`station_id`): your Weather Underground PWS station ID.
+- **Station Key** (`station_key`): the matching station key.
+
+Create or configure your PWS through Weather Underground. Keep these values private: do not commit them to Git, post them in screenshots, or include them in public issues.
+
+### MQTT connection
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `mqtt_host` | `core-mosquitto` | MQTT broker hostname reachable from the add-on |
+| `mqtt_port` | `1883` | MQTT broker port |
+| `mqtt_username` | empty | MQTT username, if required |
+| `mqtt_password` | empty | MQTT password, if required |
+| `mqtt_topic` | `rtl_433/+/events` | Topic filter containing the weather JSON |
+| `mqtt_tls` | `false` | Enable TLS for the MQTT connection |
+
+The MQTT broker and rtl_433 publisher must already be running, and the configured topic must receive JSON weather messages. If your broker uses authentication, configure the correct MQTT username and password.
+
+### Upload behaviour
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `upload_interval` | `60` | Upload interval in seconds (30–3600) |
+| `max_data_age` | `300` | Maximum age of the latest MQTT message in seconds before upload is skipped |
+
+The add-on uses the latest JSON message received on the subscribed topic. If that message becomes older than `max_data_age`, it skips the upload rather than sending stale observations.
+
+### JSON field mapping
+
+The default field mappings are intended for common rtl_433 weather payloads. If your decoder uses different names, change the mapping to match the JSON keys exactly.
+
+| Setting | Default JSON field | Weather Underground field |
+| --- | --- | --- |
+| `temperature_field` | `temperature_C` | Temperature (`tempf`) |
+| `temperature_unit` | `C` | Input temperature unit: Celsius or Fahrenheit |
+| `humidity_field` | `humidity` | Relative humidity |
+| `pressure_field` | `pressure_hPa` | Pressure (`baromin`) |
+| `pressure_unit` | `hPa` | Input pressure unit: hPa, inHg, or mmHg |
+| `wind_speed_field` | `wind_avg_km_h` | Average wind speed (`windspeedmph`) |
+| `wind_speed_unit` | `km/h` | Input wind speed unit |
+| `wind_gust_field` | `wind_max_km_h` | Wind gust (`windgustmph`) |
+| `wind_gust_unit` | `km/h` | Input gust speed unit |
+| `wind_direction_field` | `wind_dir_deg` | Wind direction in degrees |
+| `rain_hour_field` | empty | Hourly rain amount (`rainin`) |
+| `rain_hour_unit` | `mm` | Input hourly rain unit: mm or inches |
+| `rain_day_field` | empty | Daily rain amount (`dailyrainin`) |
+| `rain_day_unit` | `mm` | Input daily rain unit: mm or inches |
+
+Rain mappings are empty by default intentionally. Only configure them once you know what the sensor's rain field represents.
+
+The add-on supports dotted paths for nested JSON, for example `weather.temperature_C`.
+
+## Example MQTT payload
+
+A typical rtl_433 weather message may look like this:
 
 ```json
 {
-  "temperature_C": 18.7,
-  "humidity": 64,
-  "pressure_hPa": 1014.2,
-  "wind_avg_km_h": 8.5,
-  "wind_dir_deg": 225,
-  "rain_mm": 1.2
+  "time": "2026-10-23T05:28:17",
+  "model": "Vevor-7in1",
+  "id": 50167,
+  "channel": 0,
+  "battery_ok": 0,
+  "temperature_C": 1.8,
+  "humidity": 99,
+  "wind_avg_km_h": 0.0,
+  "wind_max_km_h": 0.0,
+  "wind_dir_deg": 250,
+  "rain_mm": 0.0,
+  "uvi": 0.0,
+  "light_lux": 0,
+  "mic": "CHECKSUM"
 }
 ```
 
-Configure the mappings to match your actual payload. Do not share your Weather Underground key in issues or logs.
+Field names depend on the weather station and rtl_433 decoder. Use the payload your own MQTT broker actually receives when setting up mappings.
 
-## Rain totals
+**Important:** the example above does not contain a pressure field. Pressure will not be uploaded unless your MQTT payload includes a pressure value and `pressure_field` points to the correct key. Do not infer pressure from temperature or humidity.
 
-Rain data needs special care. A station may publish a cumulative counter, a daily total, or an hourly amount. These are not interchangeable. Map the correct metric and unit; avoid interpreting a cumulative counter as an hourly amount. Counter rollover/reset handling will be improved as real payload examples become available.
+## Rain data
 
-## Weather Underground credentials
+Rain fields require special care. Depending on the station and decoder, a rain value may be a cumulative counter, a daily total, or an amount for a particular interval. These meanings are not interchangeable.
 
-Create/configure a Personal Weather Station in Weather Underground and enter its Station ID and Station Key in the add-on configuration. Use only your own station credentials. Do not commit credentials to Git.
+Do not map a field such as `rain_mm` to hourly or daily rain until you have confirmed what it represents. Incorrect mapping can result in misleading rainfall values on Weather Underground. Counter rollover/reset handling is not currently provided by this add-on.
+
+## Logs and troubleshooting
+
+Open the add-on's **Log** tab in Home Assistant.
+
+Common messages:
+
+- **Waiting for first JSON MQTT weather message** — no valid JSON weather message has been received yet.
+- **Connected to MQTT broker; subscribed to ...** — the MQTT connection succeeded and the topic subscription was requested.
+- **Weather Underground upload succeeded; fields=...** — Weather Underground returned a success response; the log lists the submitted weather fields.
+- **Latest MQTT message is ... old** — no sufficiently recent message is available; check the sensor, rtl_433 publisher, MQTT topic, and `max_data_age`.
+- **Invalid unit configuration** — check the selected input units in the add-on configuration.
+
+A successful upload confirms that Weather Underground accepted the request, but you should still verify that the station page displays updated values as expected.
 
 ## Development status
 
-Initial repository scaffolding. The first implementation is deliberately configurable because the owner's exact MQTT payload has not yet been captured. Test using real sensor payloads before calling the release stable.
+This project is under active development and has been tested with real MQTT weather messages and a Weather Underground PWS. Sensor models and payloads vary, so verify field mappings and units for your own setup before relying on the reported data.
 
 ## License
 
