@@ -48,7 +48,8 @@ jobs:
               "wind_gust_field":"","wind_direction_field":"wind_dir",
               "rain_hour_field":"","rain_day_field":""
           }))
-          os.environ["WU_OPTIONS_PATH"] = str(options_path)
+          os.environ["WU_OPTIONS_PATH"] = str(options_path.resolve())
+          print("Using test config:", os.environ["WU_OPTIONS_PATH"])
           spec=importlib.util.spec_from_file_location("wu", "rtl433_wunderground/run.py")
           mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
           result=mod.build_wu_params({
