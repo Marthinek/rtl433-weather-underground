@@ -81,6 +81,8 @@ def build_wu_params(data: dict[str, Any]) -> dict[str, str]:
         "dateutc": "now",
         "action": "updateraw",
         "softwaretype": "rtl433-weather-underground/0.1.0",
+        "realtime": "1",
+        "rtfreq": str(max(30, int(opt("upload_interval", 60)))),
     }
     fields: list[tuple[str, str, Any]] = [
         ("temperature_field", "tempf", lambda v: to_f(v, opt("temperature_unit", "C"))),
