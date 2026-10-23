@@ -119,7 +119,9 @@ def build_wu_params(data: dict[str, Any]) -> dict[str, str]:
     return params
 
 def on_connect(client: mqtt.Client, userdata: Any, flags: Any, reason_code: Any, properties: Any = None) -> None:
-    if int(reason_code) == 0:
+    # Paho MQTT v2 passes a ReasonCode object, not an int.
+    code = getattr(reason_code, "value", reason_code)
+    if int(code) == 0:
         topic = str(opt("mqtt_topic", "rtl_433/+/events"))
         client.subscribe(topic, qos=0)
         _LOGGER.info("Connected to MQTT broker; subscribed to %s", topic)
