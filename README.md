@@ -4,6 +4,24 @@ A Home Assistant OS add-on that forwards weather observations received over MQTT
 
 The add-on subscribes to your configured MQTT topic, maps fields from the latest JSON message, converts supported units, and periodically uploads available values to Weather Underground.
 
+## Tested hardware and confirmed functionality
+
+**Tested with:** Vevor 7-in-1 Wireless Weather Station, using `rtl_433` JSON messages delivered over MQTT.
+
+The following has been verified with this setup:
+
+- MQTT messages from the station are received by the add-on.
+- Temperature is converted from Celsius to the Weather Underground temperature field.
+- Relative humidity and wind direction are uploaded.
+- Average wind speed and wind gust are converted from km/h to mph and uploaded.
+- Weather Underground confirms successful uploads, and the add-on log lists the submitted fields.
+
+The tested upload log included: `humidity`, `tempf`, `winddir`, `windspeedmph`, and `windgustmph`.
+
+**Not confirmed for this setup:** pressure upload, hourly/daily rainfall interpretation, and other weather station models. The example Vevor payload below does not include pressure. Rain fields should not be enabled until their meaning (for example, interval amount versus cumulative total) is confirmed.
+
+Other rtl_433-compatible stations may work, but their payload field names and sensor semantics can differ. They may require different field mappings and testing.
+
 ## Features
 
 - MQTT input, including the common `rtl_433/+/events` topic pattern.
@@ -87,7 +105,7 @@ The add-on supports dotted paths for nested JSON, for example `weather.temperatu
 
 ## Example MQTT payload
 
-A typical rtl_433 weather message may look like this:
+This is an example message received from the tested Vevor 7-in-1 Wireless Weather Station via rtl_433:
 
 ```json
 {
@@ -108,9 +126,9 @@ A typical rtl_433 weather message may look like this:
 }
 ```
 
-Field names depend on the weather station and rtl_433 decoder. Use the payload your own MQTT broker actually receives when setting up mappings.
+The example includes temperature, humidity, wind speed, gust, wind direction, rain, UV index and light level. The current uploader mapping does not send every field in the payload: only configured and supported Weather Underground fields are uploaded.
 
-**Important:** the example above does not contain a pressure field. Pressure will not be uploaded unless your MQTT payload includes a pressure value and `pressure_field` points to the correct key. Do not infer pressure from temperature or humidity.
+**Important:** this payload does not contain a pressure field. Pressure will not be uploaded unless your MQTT payload includes a pressure value and `pressure_field` points to the correct key. Do not infer pressure from temperature or humidity.
 
 ## Rain data
 
@@ -134,7 +152,7 @@ A successful upload confirms that Weather Underground accepted the request, but 
 
 ## Development status
 
-This project is under active development and has been tested with real MQTT weather messages and a Weather Underground PWS. Sensor models and payloads vary, so verify field mappings and units for your own setup before relying on the reported data.
+The current implementation has been tested with a Vevor 7-in-1 Wireless Weather Station, rtl_433 MQTT messages, and a Weather Underground PWS. Compatibility with other stations has not been confirmed. Sensor models and payloads vary, so verify field mappings and units for your own setup before relying on the reported data.
 
 ## License
 
