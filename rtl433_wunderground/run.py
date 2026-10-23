@@ -162,7 +162,7 @@ def upload_once() -> None:
         return
     # Never log the full URL or request parameters; they include the station key.
     try:
-        response = requests.get(WU_URL, params=params, timeout=20)
+        response = requests.get(WU_URL, params=params, timeout=20, allow_redirects=False)
         response.raise_for_status()
         body = response.text.strip()
         if body.lower() == "success":
