@@ -167,7 +167,7 @@ def upload_once() -> None:
         response = requests.get(WU_URL, params=params, timeout=20, allow_redirects=False)
         response.raise_for_status()
         body = response.text.strip()
-        if body.lower() == "success":
+        if body.lower().startswith("success"):
             _LOGGER.info("Weather Underground upload succeeded; fields=%s, MQTT age=%.0fs", ",".join(sorted(weather_fields)), age)
         else:
             _LOGGER.error("Weather Underground rejected or did not confirm upload (HTTP %s, response=%r)", response.status_code, body[:160])
