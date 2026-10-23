@@ -10,7 +10,6 @@ import os
 import signal
 import threading
 import time
-from datetime import datetime, timezone
 from typing import Any
 
 import paho.mqtt.client as mqtt
