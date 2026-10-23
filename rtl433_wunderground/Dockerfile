@@ -1,10 +1,10 @@
 ARG BUILD_FROM
-FROM ${BUILD_FROM}
-RUN apk add --no-cache python3 py3-pip
+FROM \${BUILD_FROM}
+
+RUN apk add --no-cache python3 py3-pip bash
 WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install --no-cache-dir --break-system-packages -r /app/requirements.txt
 COPY run.py /app/run.py
 COPY rootfs/ /
 RUN chmod a+x /etc/services.d/rtl433-wunderground/run
-CMD [ "python3", "-u", "/app/run.py" ]
