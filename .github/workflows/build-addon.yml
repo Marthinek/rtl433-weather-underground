@@ -38,8 +38,8 @@ jobs:
           import importlib.util, json, os, tempfile
           from pathlib import Path
           # Import is tested using a temporary add-on options file.
-          Path("/data").mkdir(exist_ok=True)
-          Path("/data/options.json").write_text(json.dumps({
+          options_path = Path("test-options.json")
+          options_path.write_text(json.dumps({
               "station_id":"TEST", "station_key":"not-a-real-key",
               "temperature_field":"temperature_C","temperature_unit":"C",
               "humidity_field":"humidity",
@@ -48,6 +48,8 @@ jobs:
               "wind_gust_field":"","wind_direction_field":"wind_dir",
               "rain_hour_field":"","rain_day_field":""
           }))
+          import os
+          os.environ["WU_OPTIONS_PATH"] = str(options_path)
           spec=importlib.util.spec_from_file_location("wu", "rtl433_wunderground/run.py")
           mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
           result=mod.build_wu_params({
