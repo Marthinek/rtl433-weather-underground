@@ -64,4 +64,4 @@ jobs:
           print("Unit conversion smoke test passed")
           PY
       - name: Build add-on image for the runner architecture
-        run: docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base-python:3.12-alpine3.22 -t rtl433-wu-test ./rtl433_wunderground
+        run: docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/base-python:3.14-alpine3.24 -t rtl433-wu-test ./rtl433_wunderground
