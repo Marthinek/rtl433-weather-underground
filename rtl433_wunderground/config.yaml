@@ -1,7 +1,7 @@
 name: RTL433 Weather Underground Uploader
 slug: rtl433_wunderground
 description: Forward weather observations from MQTT (for example rtl_433) to Weather Underground PWS
-version: "0.1.0"
+version: "0.1.1"
 url: https://github.com/Marthinek/rtl433-weather-underground
 startup: application
 boot: auto
