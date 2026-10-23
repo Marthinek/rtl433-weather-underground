@@ -175,7 +175,7 @@ def upload_once() -> None:
         _LOGGER.warning("Weather Underground request failed (%s); will retry on next interval", type(err).__name__)
 
 def load_config() -> dict[str, Any]:
-    path = "/data/options.json"
+    path = os.getenv("WU_OPTIONS_PATH", "/data/options.json")
     try:
         with open(path, encoding="utf-8") as stream:
             config = json.load(stream)
